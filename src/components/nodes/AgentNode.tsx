@@ -44,7 +44,7 @@ export default function AgentNode({ id, data, selected }: NodeProps<Node<Lineage
 
   return (
     <div
-      className="relative h-full w-full overflow-hidden rounded-2xl border border-white/10 pl-[18px] pr-3 pt-14 pb-3 transition-all"
+      className="relative h-full w-full overflow-hidden rounded-2xl border    border-white/10 pl-[18px] pr-3 pt-0 pb-3 transition-all"
       style={{
         background: "linear-gradient(160deg, rgba(28,38,62,.96), rgba(14,19,34,.97))",
         boxShadow,
@@ -102,7 +102,7 @@ export default function AgentNode({ id, data, selected }: NodeProps<Node<Lineage
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-1 gap-3 flex flex-wrap gap-2">
         <Chip>
           <MapPin size={9} /> {p.state}
         </Chip>
