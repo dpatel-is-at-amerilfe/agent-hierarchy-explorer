@@ -1,5 +1,10 @@
 # Interactive Agent Lineage Explorer
 
+Deployed on Databricks here:
+https://agent-network-lineage-explorer-1054782505781628.8.azure.databricksapps.com
+
+---
+
 A dark, command-center–style React prototype that visualizes AmeriLife agent
 hierarchy lineage as an interactive network topology. Leadership can explore the
 network organized **by Affiliate** or **by Carrier**, with **AmeriLife always at
