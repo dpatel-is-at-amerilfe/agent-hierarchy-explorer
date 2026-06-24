@@ -1,0 +1,46 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: #070a14;
+}
+* { box-sizing: border-box; }
+
+/* ---- React Flow edge styling — the "lit circuit trace" lineage ---- */
+.react-flow__edge .react-flow__edge-path {
+  stroke: rgba(120, 150, 200, 0.34);
+  stroke-width: 1.6;
+  transition: stroke 0.2s, stroke-width 0.2s;
+}
+.react-flow__edge.edge-dim .react-flow__edge-path {
+  stroke: rgba(120, 150, 200, 0.09);
+}
+.react-flow__edge.edge-up .react-flow__edge-path {
+  stroke: #2de2c8;
+  stroke-width: 2.6;
+  filter: drop-shadow(0 0 5px rgba(45, 226, 200, 0.7));
+  stroke-dasharray: 7 7;
+  animation: ale-dashflow 1s linear infinite;
+}
+.react-flow__edge.edge-down .react-flow__edge-path {
+  stroke: rgba(232, 79, 214, 0.55);
+  stroke-width: 1.9;
+  stroke-dasharray: 3 6;
+  filter: drop-shadow(0 0 4px rgba(232, 79, 214, 0.4));
+}
+@keyframes ale-dashflow { to { stroke-dashoffset: -28; } }
+
+/* React Flow chrome to match the dark theme */
+.react-flow__controls-button { border-bottom: 1px solid rgba(120,150,200,.12) !important; }
+.react-flow__controls-button svg { fill: currentColor; }
+.react-flow__minimap { border-radius: 12px; }
+
+/* scrollbars */
+*::-webkit-scrollbar { width: 7px; height: 7px; }
+*::-webkit-scrollbar-thumb { background: rgba(120, 150, 200, 0.2); border-radius: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
