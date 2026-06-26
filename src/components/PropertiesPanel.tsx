@@ -2,6 +2,8 @@ import { CircleDot, Network, Star, Building2, Radio } from "lucide-react";
 import type { AgentHierarchyRecord, LineageGraph, Person } from "../types/hierarchy";
 import { COLORS, LEVEL_META, STATUS_META } from "../utils/theme";
 import { fmtUSD, fmtFull } from "../utils/hierarchyTransforms";
+import { useState } from "react";
+import { explainNode } from "../utils/explain";
 
 interface Props {
   selectedId: string | null;
@@ -26,10 +28,10 @@ export default function PropertiesPanel({ selectedId, graph, persons, records, o
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto px-3.5 pb-5">
-          {node.kind === "agent" && <AgentProps node={node} graph={graph} onPick={onPick} />}
-          {node.kind === "root" && <RootProps persons={persons} records={records} />}
-          {node.kind === "affiliate" && <AffiliateProps node={node} persons={persons} />}
-          {node.kind === "carrier" && <CarrierProps node={node} records={records} />}
+          {node.kind === "agent" && <AgentProps key={node.id} node={node} graph={graph} onPick={onPick} />}
+          {node.kind === "root" && <RootProps key={node.id} persons={persons} records={records} />}
+          {node.kind === "affiliate" && <AffiliateProps key={node.id} node={node} persons={persons} />}
+          {node.kind === "carrier" && <CarrierProps key={node.id} node={node} records={records} />}
         </div>
       )}
     </aside>
@@ -52,11 +54,60 @@ function AgentProps({ node, graph, onPick }: { node: any; graph: LineageGraph; o
   const status = node.carrierContext ? node.slicedStatus : p.status;
   const sm = STATUS_META[status as keyof typeof STATUS_META];
 
+const [explanation, setExplanation] = useState<string | null>(null);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
+async function handleExplain() {
+  setLoading(true);
+  setError(null);
+  try {
+    const text = await explainNode({
+      kind: "agent",
+      name: p.name,
+      level: p.levelName,
+      npn: p.npn,
+      affiliate: p.affiliateName,
+      state: p.state,
+      status,
+      carriers: p.carriers,
+      linesOfBusiness: p.lobs,
+      productionYtd: prod,
+      policiesYtd: pol,
+      directUpline: parent ? parent.label : "AmeriLife (root)",
+      downlineCount: childCount,
+      effectiveDate: p.effectiveDate,
+      terminationDate: p.terminationDate,
+      ...(node.carrierContext ? { carrierContext: node.carrierContext } : {}),
+    });
+    setExplanation(text);
+  } catch (e) {
+    setError(e instanceof Error ? e.message : "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+}
+
   return (
     <>
       <Hero accent={meta.color} title={p.name} role={p.levelName}
         avatar={<span>{p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>}
         status={{ label: status, color: sm.color }} />
+      <Section title="AI Summary">
+        <button
+          onClick={handleExplain}
+          disabled={loading}
+          className="w-full rounded-lg border border-[#2DE2C8]/40 bg-[#2DE2C8]/10 px-3 py-2 text-[12px] font-semibold text-[#2DE2C8] transition-colors hover:bg-[#2DE2C8]/20 disabled:opacity-50"
+        >
+          {loading ? "Thinking…" : explanation ? "Regenerate" : "Explain this agent"}
+        </button>
+        {error && <p className="mt-2 text-[11px] text-[#FF8095]">{error}</p>}
+        {explanation && (
+          <p className="mt-2 rounded-lg border border-line bg-white/[.025] p-2.5 text-[12px] leading-relaxed text-slate-200">
+            {explanation}
+          </p>
+        )}
+      </Section>
       <Section title="Identity">
         <KV k="Agent NPN" v={p.npn} mono />
         <KV k="Agent ID" v={node.carrierContext ? node.slicedAgentId : p.agentIds.join(", ")} mono />
@@ -121,9 +172,57 @@ function AffiliateProps({ node, persons }: { node: any; persons: Map<string, Per
   const carriers = new Set<string>();
   people.forEach((p) => p.carriers.forEach((c) => carriers.add(c)));
   const total = people.reduce((s, p) => s + p.productionYtd, 0);
+
+const [explanation, setExplanation] = useState<string | null>(null);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+const terminated = people.filter((p) => p.status === "Terminated").length;
+const pending = people.filter((p) => p.status === "Pending").length;
+// top-of-house agents in this affiliate (no upline inside it)
+const topLevel = people.filter((p) => !p.parentNpn).length;
+
+async function handleExplain() {
+  setLoading(true);
+  setError(null);
+  try {
+    const text = await explainNode({
+      kind: "affiliate",
+      name: node.label,
+      ...(node.carrierContext ? { carrierContext: node.carrierContext } : {}),
+      agentCount: people.length,
+      activeAgents: active,
+      pendingAgents: pending,
+      terminatedAgents: terminated,
+      topLevelAgents: topLevel,
+      carriersRepresented: [...carriers].sort(),
+      totalProductionYtd: total,
+    });
+    setExplanation(text);
+  } catch (e) {
+    setError(e instanceof Error ? e.message : "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+}
+
   return (
     <>
       <Hero accent={COLORS.affiliate} title={node.label} role={node.carrierContext ? `Under ${node.carrierContext}` : "Affiliate organization"} avatar={<Building2 size={17} />} />
+      <Section title="AI Summary">
+        <button
+          onClick={handleExplain}
+          disabled={loading}
+          className="w-full rounded-lg border border-[#4F8BFF]/40 bg-[#4F8BFF]/10 px-3 py-2 text-[12px] font-semibold text-[#4F8BFF] transition-colors hover:bg-[#4F8BFF]/20 disabled:opacity-50"
+        >
+          {loading ? "Thinking…" : explanation ? "Regenerate" : "Explain this affiliate"}
+        </button>
+        {error && <p className="mt-2 text-[11px] text-[#FF8095]">{error}</p>}
+        {explanation && (
+          <p className="mt-2 rounded-lg border border-line bg-white/[.025] p-2.5 text-[12px] leading-relaxed text-slate-200">
+            {explanation}
+          </p>
+        )}
+      </Section>
       <Section title="Summary">
         <div className="mb-2 flex gap-2">
           <Metric label="Agents" value={people.length} accent="#4F8BFF" />

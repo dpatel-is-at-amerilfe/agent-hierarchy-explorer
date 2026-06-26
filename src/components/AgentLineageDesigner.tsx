@@ -1,29 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GitBranch, ArrowLeftRight, ArrowUpDown, Maximize2 } from "lucide-react";
-import {
-  ReactFlow,
-  ReactFlowProvider,
-  Background,
-  BackgroundVariant,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
-  type Node,
-  type Edge,
-  type NodeMouseHandler,
-} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-
 import type { AgentHierarchyRecord, FilterState, LineageNodeData, RenderMode, TopologyMode } from "../types/hierarchy";
 import { agentHierarchyRecords } from "../data/agentHierarchyMockData";
-import {
-  buildPersons, buildGraph, buildFilterOptions, computeVisibleSet, makeVisibleChildren,
-  computeLineage, hasActiveFilters, searchNodeId,
-} from "../utils/hierarchyTransforms";
 import { computeFlow, type LayoutDir } from "../utils/layout";
-
 import TopToolbar from "./TopToolbar";
 import LeftSidebar from "./LeftSidebar";
 import PropertiesPanel from "./PropertiesPanel";
@@ -33,9 +13,19 @@ import RootNode from "./nodes/RootNode";
 import AffiliateNode from "./nodes/AffiliateNode";
 import CarrierNode from "./nodes/CarrierNode";
 import AgentNode from "./nodes/AgentNode";
+import {
+  ReactFlow, ReactFlowProvider, useReactFlow,
+  Background, BackgroundVariant,
+  Controls, MiniMap, useNodesState, useEdgesState,
+  type Node, type Edge, type NodeMouseHandler,
+} from "@xyflow/react";
+import {
+  buildPersons, buildGraph, buildFilterOptions, computeVisibleSet, makeVisibleChildren,
+  computeLineage, hasActiveFilters, searchNodeId,
+} from "../utils/hierarchyTransforms";
+
 
 const RECORDS: AgentHierarchyRecord[] = agentHierarchyRecords;
-
 const nodeTypes = { root: RootNode, affiliate: AffiliateNode, carrier: CarrierNode, agent: AgentNode };
 
 function emptyFilters(): FilterState {
